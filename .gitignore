@@ -1,0 +1,7 @@
+
+dist
+*.dmg
+*.dmg.blockmap
+*.zip
+
+node_modules/
