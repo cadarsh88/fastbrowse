@@ -11,7 +11,7 @@ async function getTransformers() {
 async function getSummarizer(progressCallback) {
     if (!summarizer) {
         const { pipeline } = await getTransformers();
-        summarizer = await pipeline('summarization', 'Xenova/distilbart-cnn-6-6', {
+        summarizer = await pipeline('summarization', 'Xenova/bart-large-cnn', {
             progress_callback: progressCallback
         });
     }
@@ -90,7 +90,15 @@ ipcMain.on('navigate-to', (event, url) => {
 
                     // Run local AI summary
                     try {
-                        const textToSummarize = article.textContent.slice(0, 3500); // distilbart has max token limits
+                        const wordCount = article.textContent.trim().split(/\s+/).length;
+                        if (wordCount < 350) {
+                            mainWindow.webContents.send('summarize-complete', {
+                                summary: `Page content is not text-heavy enough to require a summary (${wordCount} words).`
+                            });
+                            return;
+                        }
+
+                        const textToSummarize = article.textContent.slice(0, 4000); // model token limits
                         const summarizerFunc = await getSummarizer((progress) => {
                             mainWindow.webContents.send('summarizer-progress', progress);
                         });
